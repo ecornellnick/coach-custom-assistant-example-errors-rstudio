@@ -1,5 +1,5 @@
 {
-  "name": "Custom Assistant Example",
+  "name": "Custom R Assistant Example",
   "type": "helper",
   "properties": {
     "user_type": "all", 
