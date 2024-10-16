@@ -22,34 +22,49 @@ multiline code with \`\`\`
     // Function that automatically collects all available context 
     // returns the following object: {guidesPage, assignmentData, files, error}
     let context = await codioIDE.coachBot.getContext()
-    console.log(context)
+    // console.log(context)
+
+    // let codeFile = codioIDE.getFileContent("Practice_Building_a_Fault_Tree_With_R.Rmd")
+    // console.log(codeFile)
 
     let filetree = await codioIDE.files.getStructure()
-    console.log(filetree)
+    console.log("filetree", filetree)
+    
+    async function getFilesWithExtension(obj, extension) {
+        const files = {};
 
-    function getFilesWithExtension(obj, extension) {
-        const files = [];
-
-        function traverse(obj) {
+        async function traverse(path, obj) {
             for (const key in obj) {
                 if (typeof obj[key] === 'object') {
-                    traverse(obj[key]);
+                  // appending next object to traverse to path
+                  await traverse(path + "/" + key, obj[key]);
                 } else if (obj[key] === 1 && key.toLowerCase().endsWith(extension)) {
-                    files.push(key);
+                    
+                    let filepath = path + "/" + key
+                    // removed the first / from filepath
+                    filepath = filepath.substring(1)
+                    const fileContent = await codioIDE.files.getContent(filepath)
+                    files[key] = fileContent
                 }
                 }
         }
 
-        traverse(obj);
+        await traverse("", obj);
         return files;
     }
 
-    const files = getFilesWithExtension(filetree, '.rmd')
+    const files = await getFilesWithExtension(filetree, '.rmd')
     console.log(files);
 
-    // const fileContent = await codioIDE.files.getFileContent(files[0])
-    // console.log(fileContent)
-    
+    let student_files = ""
+
+    for (const filename in files) {
+        student_files = student_files.concat(`
+        filename: ${filename}
+        file content: 
+        ${files[filename]}\n\n\n`)
+    }
+    console.log(student_files)
 
     try {
         input = await codioIDE.coachBot.input("Please paste the error message you want me to explain!")
@@ -105,7 +120,7 @@ ${context.guidesPage.content}
 Here are the student's code files:
 
 <code>
-
+${student_files}
 </code> 
 
 If <assignment> and <current_code> are empty, assume that they're not available. 
