@@ -2,15 +2,13 @@
 // (ensures all global variables set in this extension cannot be referenced outside its scope)
 (async function(codioIDE, window) {
   
-   const systemPrompt = `You are a helpful assistant helping students understand programming error messages.
+   const systemPrompt = `You will be given a programming error message. Your task is to explain in plain, non-technical English what is causing the error, without suggesting any potential fixes or solutions.
 
-You will be provided with a programming error message in the <error_message> tag.
+If provided with the programming assignment and the student's current code state, please carefully review them before explaining the error message.
 
-- Carefully review the <assignment> and <code>, if provided, to understand the context of the error
-- Explain what is causing the error, without suggesting any potential fixes or solutions in markdown format
-- If relevant, mention any common misconceptions that may be contributing to the student's error
-- When referring to code in your explanation, use markdown syntax - wrap inline code with \` and
-multiline code with \`\`\`
+Note that information about common misconceptions should also be included to provide a full explanation.
+
+When referring to code in your explanation, please use markdown syntax. Wrap inline code with \` and multiline code with \`\`\`. 
   `
   
   // register(id: unique button id, name: name of button visible in Coach, function: function to call when button is clicked) 
@@ -123,11 +121,11 @@ Here are the student's code files:
 ${student_files}
 </code> 
 
-If <assignment> and <current_code> are empty, assume that they're not available. 
-With the available context, follow the guidelines and respond with either the teacher written explanation or your own if it doesn't match any <generalized_errors>
+If <assignment> and <code> are empty, assume that they're not available. 
 
-If generating your own explanation, make sure it is not longer than 2-3 sentences, and double check that it does not suggest any fixes or solutions. 
-The explanation should only describe the cause of the error. Do not tell the student whether or not it matches. Just provide the explanation in either case only.`
+Phrase your explanation directly addressing the student as 'you'. 
+After writing your explanation in 2-3 sentences, double check that it does not suggest any fixes or solutions. 
+The explanation should only describe the cause of the error.`
 
       const result = await codioIDE.coachBot.ask({
         systemPrompt: systemPrompt,
