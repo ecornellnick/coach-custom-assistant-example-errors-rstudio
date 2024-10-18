@@ -17,17 +17,16 @@ When referring to code in your explanation, please use markdown syntax. Wrap inl
   // function called when I have a question button is pressed
   async function onButtonPress() {
 
-    // Function that automatically collects all available context 
+    // automatically collects all available context 
     // returns the following object: {guidesPage, assignmentData, files, error}
     let context = await codioIDE.coachBot.getContext()
     // console.log(context)
 
-    // let codeFile = codioIDE.getFileContent("Practice_Building_a_Fault_Tree_With_R.Rmd")
-    // console.log(codeFile)
-
+    // gets the filetree as an object
     let filetree = await codioIDE.files.getStructure()
-    console.log("filetree", filetree)
+    // console.log("filetree", filetree)
     
+    // recursively search filetree for files with specific extension
     async function getFilesWithExtension(obj, extension) {
         const files = {};
 
@@ -51,18 +50,19 @@ When referring to code in your explanation, please use markdown syntax. Wrap inl
         return files;
     }
 
+    // retrieve files and file content with specific extension
     const files = await getFilesWithExtension(filetree, '.rmd')
-    console.log(files);
 
     let student_files = ""
 
+    // join all fetched files as one string for LLM context 
     for (const filename in files) {
         student_files = student_files.concat(`
         filename: ${filename}
         file content: 
         ${files[filename]}\n\n\n`)
     }
-    console.log(student_files)
+    // console.log(student_files)
 
     try {
         input = await codioIDE.coachBot.input("Please paste the error message you want me to explain!")
@@ -73,6 +73,7 @@ When referring to code in your explanation, please use markdown syntax. Wrap inl
             return
     }
 
+    // validation prompt to ensure pasted text is actually an error message
     const valPrompt = `<Instructions>
 
 Please determine whether the following text appears to be a programming error message or not:
@@ -102,6 +103,8 @@ If it is not a traditional error message, only answer "Yes" if it sounds like it
         userPrompt: valPrompt
     }, {stream:false, preventMenu: true})
 
+
+    // if validation result is yes, pass pasted text to error explanation API call with all context
     if (validation_result.result.includes("Yes")) {
         //Define your assistant's userPrompt - this is where you will provide all the context you collected along with the task you want the LLM to generate text for.
         const userPrompt = `Here is the error message:
